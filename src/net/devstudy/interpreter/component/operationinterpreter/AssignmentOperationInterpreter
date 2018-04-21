@@ -1,0 +1,49 @@
+package net.devstudy.interpreter.component.operationinterpreter;
+
+import java.util.List;
+
+import net.devstudy.interpreter.component.ExpressionResolver;
+import net.devstudy.interpreter.component.OperationInterpeter;
+import net.devstudy.interpreter.component.VariableVerifier;
+import net.devstudy.interpreter.component.impl.VariableStorageHelper;
+import net.devstudy.interpreter.exception.SyntaxInterpreterException;
+import net.devstudy.interpreter.model.Expression;
+import net.devstudy.interpreter.model.Operation;
+
+public class AssignmentOperationInterpreter extends AbstractOperationInterpeter implements OperationInterpeter {
+
+	public AssignmentOperationInterpreter(VariableVerifier variableVerifier, ExpressionResolver expressionResolver) {
+		super(variableVerifier, expressionResolver);
+	}
+
+	@Override
+	public boolean isSupport(Operation operation) {
+		return operation.getToken(1).equals("=");
+	}
+
+	@Override
+    public void interpreter(Operation operation) {
+        validateSyntax(operation);
+        String varName = operation.getToken(0);
+        variableVerifier.validate(varName);
+        Object value = getVariableValue(operation);
+        VariableStorageHelper.getVariableStorage().putVariable(varName, value);
+    }
+
+    private Object getVariableValue(Operation operation) {
+    	//TODO
+            List<String> tokens = operation.getSubTokens(2);
+            Expression expression = expressionResolver.resolve(tokens);
+            return expression.getValue();
+    }
+
+    private void validateSyntax(Operation operation) {
+    	//TODO
+        if (!VariableStorageHelper.getVariableStorage().isDefined(operation.getToken(0))) {
+            throw new SyntaxInterpreterException("Variable name is not defined");
+        }
+        if (operation.getTokenCount() == 2) {
+            throw new SyntaxInterpreterException("Missing variable value");
+        }
+    }
+}
